@@ -1,0 +1,18 @@
+Package: muBioAnnotatR
+Title: muBioAnnotatR
+Description: Fabian's R annotation tools for biological entities
+Author: Fabian Mueller
+Maintainer: Fabian Mueller <muellerf@stanford.edu>
+Date: 2018-02-13
+Suggests:
+	muRtools,
+    BSgenome.Hsapiens.UCSC.hg19,
+    BSgenome.Hsapiens.NCBI.GRCh38,
+    BSgenome.Mmusculus.UCSC.mm9,
+    BSgenome.Mmusculus.UCSC.mm10
+Depends:
+    RnBeads,
+    GenomicRanges,
+    rtracklayer
+License: GPL-2
+Version: 0.1
