@@ -221,6 +221,10 @@ setMethod("regionSetGr",
 			logger.error(c("Invalid RegionSetDB objet: there are multiple instances of region set", name, "for collection", col, "and genome", gen, "--> returning NULL"))
 			return(NULL)
 		}
+		if (.object@loadingStatus[i] == "unloaded"){
+			logger.status(c("Loading region set from disk"))
+			.object <- loadRegionSets(.object, indx=i)
+		}
 		return(.object@regionSets[[i]])
 	}
 )
@@ -480,6 +484,7 @@ if (!isGeneric("loadRegionSets")) {
 #'
 #' @param .object \code{\linkS4class{RegionSetDB}} object
 #' @param indx    indices of the region sets to be unloaded
+#' @param genome  only load region sets for a specified genome assembly
 #' @return a modified \code{\linkS4class{RegionSetDB}} object with the region sets loaded
 #'
 #' @rdname loadRegionSets-RegionSetDB-method
