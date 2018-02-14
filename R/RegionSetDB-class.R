@@ -179,6 +179,52 @@ setMethod("regionSetNames",
 	}
 )
 #-------------------------------------------------------------------------------
+if (!isGeneric("regionSetGr")) {
+	setGeneric(
+		"regionSetGr",
+		function(.object, ...) standardGeneric("regionSetGr"),
+		signature=c(".object")
+	)
+}
+#' regionSetGr-methods
+#'
+#' Return region set \code{GRanges} object for a given name, collection and genome
+#'
+#' @param .object \code{\linkS4class{regionSetGrDB}} object
+#' @param name    name of the region set to be retrieved (character)
+#' @param col     name of the collection the region set is in (character)
+#' @param gen     genome assembly for the region set (character)
+#' @return \code{GRanges} object containing the region set or \code{NULL} if it does not exist
+#'
+#' @rdname regionSetGr-regionSetGrDB-method
+#' @docType methods
+#' @aliases regionSetGr
+#' @aliases regionSetGr,regionSetGrDB-method
+#' @author Fabian Mueller
+#' @export
+setMethod("regionSetGr",
+	signature(
+		.object="RegionSetDB"
+	),
+	function(
+		.object,
+		name,
+		col,
+		gen
+	) {
+		i <- which(.object@regionSetMd[,"assembly"] == gen & .object@regionSetMd[,"collection"] == col & .object@regionSetMd[,"name"] == name)
+		if (length(i) < 1){
+			logger.warning(c("There is no region set", name, "for collection", col, "and genome", gen, "--> returning NULL"))
+			return(NULL)
+		}
+		if (length(i) > 1){
+			logger.error(c("Invalid RegionSetDB objet: there are multiple instances of region set", name, "for collection", col, "and genome", gen, "--> returning NULL"))
+			return(NULL)
+		}
+		return(.object@regionSets[[i]])
+	}
+)
+#-------------------------------------------------------------------------------
 #' length-methods
 #'
 #' Return the number of region sets in the DB
