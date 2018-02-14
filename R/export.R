@@ -20,7 +20,7 @@ if (!isGeneric("export2Lola")) {
 #' @aliases export2Lola
 #' @aliases export2Lola,RegionSetDB-method
 #' @author Fabian Mueller
-#' @noRd
+#' @export
 setMethod("export2Lola",
 	signature(
 		.object="RegionSetDB"
