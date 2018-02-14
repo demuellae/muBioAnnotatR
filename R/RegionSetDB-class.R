@@ -378,7 +378,7 @@ setMethod("addRegionSet",
 		.object@parserSummary <- rbind(.object@parserSummary, md)
 		.object@regionSets    <- c(.object@regionSets, parsedAnnot$regionSets)
 		.object@regionSetMd   <- md
-		.object@loadingStatus <- c(.object@loadingStatus, "loaded")
+		.object@loadingStatus <- c(.object@loadingStatus, rep("loaded", nrow(md)))
 
 		return(.object)
 	}
