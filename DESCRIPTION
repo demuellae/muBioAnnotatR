@@ -5,14 +5,22 @@ Author: Fabian Mueller
 Maintainer: Fabian Mueller <muellerf@stanford.edu>
 Date: 2018-02-13
 Suggests:
-	muRtools,
+	LOLA,
     BSgenome.Hsapiens.UCSC.hg19,
     BSgenome.Hsapiens.NCBI.GRCh38,
     BSgenome.Mmusculus.UCSC.mm9,
     BSgenome.Mmusculus.UCSC.mm10
 Depends:
     RnBeads,
+    muRtools,
     GenomicRanges,
     rtracklayer
+Collate: 
+    'classDefs.R'
+    'utils.R'
+    'parser.R'
+    'RegionSetDB-class.R'
+    'export.R'
 License: GPL-2
 Version: 0.1
+RoxygenNote: 6.0.1
