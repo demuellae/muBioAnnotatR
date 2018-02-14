@@ -223,7 +223,7 @@ setMethod("regionSetGr",
 		}
 		if (.object@loadingStatus[i] == "unloaded"){
 			logger.status(c("Loading region set from disk"))
-			.object <- loadRegionSets(.object, indx=i)
+			.object <- loadRegionSets(.object, indx=i) #TODO: is there some way, we can use concurrent programming to actually modify the input .object and make subsequent loading of the same region set faster?
 		}
 		return(.object@regionSets[[i]])
 	}
@@ -283,6 +283,9 @@ setMethod("dbDir", signature(.object="RegionSetDB"),
 		.object@dbDir
 	}
 )
+#' @aliases dbDir
+#' @aliases dbDir,RegionSetDB-method
+#' @export
 setReplaceMethod("dbDir", signature(.object="RegionSetDB"),
 	function(.object, value){
 		if (!is.null(value) && !is.character(value)){
