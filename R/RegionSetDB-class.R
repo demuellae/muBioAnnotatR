@@ -225,7 +225,13 @@ setMethod("regionSetGr",
 			logger.status(c("Loading region set from disk"))
 			.object <- loadRegionSets(.object, indx=i) #TODO: is there some way, we can use concurrent programming to actually modify the input .object and make subsequent loading of the same region set faster?
 		}
-		return(.object@regionSets[[i]])
+		res <- .object@regionSets[[i]]
+		#non-standard genome names ("_chr" suffix for added "chr" prefix to standard genomes)
+		if (genome(res)[1]==paste0(gen, "_chr")) {
+			logger.info('Removed "_chr" suffix from genome name')
+			genome(res) <- gen
+		}
+		return(res)
 	}
 )
 #-------------------------------------------------------------------------------
