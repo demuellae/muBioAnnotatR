@@ -11,7 +11,7 @@ Suggests:
     BSgenome.Mmusculus.UCSC.mm9,
     BSgenome.Mmusculus.UCSC.mm10
 Depends:
-    RnBeads,
+    muLogR,
     muRtools,
     GenomicRanges,
     rtracklayer
