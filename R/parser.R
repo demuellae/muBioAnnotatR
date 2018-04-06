@@ -41,6 +41,32 @@ parse.ensembl.regbuild <- function(fn, assembly, metadata){
 	return(getParseResult(rs, md))	
 }
 
+parse.ensembl.regbuild.bp <- function(fn, assembly, metadata){
+	df <- import.bb.df(fn)
+	assembly4gr <- assembly
+	df[, "chrom"] <- adjChrom(df[, "chrom"])
+	if (assembly=="hg38"){
+		assembly4gr <- "hg38_chr"
+	}
+
+	# df[,"featureType_norm"] <- normalize.str(df[,"feature_type"])
+	gr <- df2granges(df, ids=df$name, strand.col="gr.strand", coord.format="B1RI", assembly=assembly4gr, doSort=TRUE)
+	elementMetadata(gr)[,"feature_type"] <- gsub("^(.*)_.*$", "\\1",elementMetadata(gr)[,"name"])
+	featureTypes <- sort(unique(elementMetadata(gr)[, "feature_type"]))
+	if (length(featureTypes) > 1){
+		rs <- lapply(featureTypes, FUN=function(ft){gr[elementMetadata(gr)[, "feature_type"]==ft]})
+		names(rs) <- featureTypes
+		md <- do.call("rbind", rep(list(metadata), length(featureTypes)))
+		md[,"name"] <- paste0(featureTypes)
+		md[,"description"] <- paste0(md[,"description"], " - ", featureTypes)
+	} else {
+		rs <- list(gr)
+		md <- metadata
+	}
+
+	return(getParseResult(rs, md))	
+}
+
 parse.gencode <- function(fn, assembly, metadata, addPromoters=TRUE, promoters.up=1500, promoters.down=500){
 	# legalGeneTypes <- NULL
 	legalGeneTypes <- c("protein_coding", "antisense", "lincRNA", "pseudogene", "processed_transcript", "miRNA", "rRNA", "snRNA", "snoRNA", "misc_RNA")
