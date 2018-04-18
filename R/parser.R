@@ -156,3 +156,52 @@ parse.ucsc.repeats <- function(fn, assembly, metadata){
 
 	return(getParseResult(rs, md))
 }
+
+# NOT SURE IF THIS IS PRACTICAL
+# these resulting GRanges objects are huge!!!
+parse.motifmatchr <- function(fn, assembly, metadata){
+	require(motifmatchr)
+	require(muRtools)
+	require(ChrAccR) # prepareMotifmatchr
+
+	assembly4gr <- assembly
+	if (assembly=="hg38"){
+		assembly4gr <- "hg38_chr"
+	}
+	seqlengths <- getSeqlengths4assembly(assembly4gr)
+	validChroms <- names(seqlengths)
+
+	motifs <- strsplit(fn, ";")[[1]]
+
+	mmArgs <- prepareMotifmatchr(assembly4gr, motifs)
+	
+	# for each chromosome, get the motif matches
+	gr <- do.call("c", lapply(names(mmArgs$genome), FUN=function(chromName){
+		# logger.status(c("chr:", chromName))#TODO: remove
+		mmRes <- matchMotifs(mmArgs$motifs, mmArgs$genome[[chromName]], out="positions")
+		# convert the resulting IRangesList to GRanges
+		return(do.call("c", lapply(names(mmRes), FUN=function(motifName){
+			x <- unlist(mmRes[[motifName]])
+			rr <- GRanges()
+			if (length(x) > 0){
+				elementMetadata(x)[,"motifName"] <- motifName
+				strands <- elementMetadata(x)[,"strand"]
+				elementMetadata(x)[,"strand"] <- NULL
+				rr <- GRanges(seqnames=chromName,ranges=x,strand=strands)
+			}
+			seqlevels(rr) <- validChroms
+			seqlengths(rr) <- seqlengths
+			genome(rr) <- assembly4gr
+			return(rr)
+		})))
+	}))
+	elementMetadata(gr)[,"motifName"] <- factor(elementMetadata(gr)[,"motifName"])
+
+	# sort
+	oo <- order(as.integer(seqnames(gr)), start(gr), end(gr), as.integer(strand(gr)))
+	gr <- gr[oo]
+
+	rs <- list(gr)
+	md <- metadata
+	return(getParseResult(rs, md))
+}
