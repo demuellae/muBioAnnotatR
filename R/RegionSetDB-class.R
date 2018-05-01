@@ -76,6 +76,42 @@ RegionSetDB <- function(parserAnnot=NULL){
 }
 
 ################################################################################
+# Display
+################################################################################
+setMethod("show","RegionSetDB",
+	function(object) {
+		cat("Region Set Database (RegionSetDB) object\n")
+		genomeVec <- genomes(object)
+		genomeStr <- paste(genomeVec, collapse=", ")
+		if (length(genomeVec) > 5) {
+			genomeVec <- genomeVec[1:5]
+			genomeStr <- paste(c(genomeVec, "..."), collapse=", ")
+		}
+		cat("contains region sets for:\n")
+		cat(" *", length(genomes(object)), "genomes:", "\n")
+		for (gg in genomeVec){
+			collectionVec <- collections(object, genomeNames=gg)
+			collectionStr <- paste(collectionVec, collapse=", ")
+			if (length(collectionVec) > 5) collectionStr <- paste(c(collectionVec[1:5], "..."), collapse=", ")
+			cat(" * *", gg, "genome:\n")
+			cat(" * * *", length(collections(object, genomeNames=gg)), "collections:", "\n")
+			for (cc in collectionVec){
+				rsVec <- regionSetNames(object, genomeNames=gg, collectionNames=cc)
+				rsStr <- paste(rsVec, collapse=", ")
+				if (length(rsVec) > 5) rsStr <- paste(c(rsVec[1:5], "..."), collapse=", ")
+				cat(" * * * *", cc, ":\n")
+				cat(" * * * * *", rsStr, "\n")
+			}
+			if (length(collections(object, genomeNames=gg)) > 5){
+				cat(" * * *", "[...]\n")
+			}
+		}
+		if (length(genomes(object)) > 5){
+			cat(" * *", "[...]\n")
+		}
+	}
+)
+################################################################################
 # Getters and Setters
 ################################################################################
 if (!isGeneric("genomes")) {

@@ -157,8 +157,6 @@ parse.ucsc.repeats <- function(fn, assembly, metadata){
 	return(getParseResult(rs, md))
 }
 
-# NOT SURE IF THIS IS PRACTICAL
-# these resulting GRanges objects are huge!!!
 parse.motifmatchr <- function(fn, assembly, metadata){
 	require(motifmatchr)
 	require(muRtools)
