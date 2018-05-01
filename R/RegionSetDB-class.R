@@ -99,7 +99,7 @@ setMethod("show","RegionSetDB",
 				rsVec <- regionSetNames(object, genomeNames=gg, collectionNames=cc)
 				rsStr <- paste(rsVec, collapse=", ")
 				if (length(rsVec) > 5) rsStr <- paste(c(rsVec[1:5], "..."), collapse=", ")
-				cat(" * * * *", cc, ":\n")
+				cat(" * * * *", cc, paste0("(", length(regionSetNames(object, genomeNames=gg, collectionNames=cc)), " region sets):\n"))
 				cat(" * * * * *", rsStr, "\n")
 			}
 			if (length(collections(object, genomeNames=gg)) > 5){
