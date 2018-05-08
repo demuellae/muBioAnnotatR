@@ -203,3 +203,52 @@ parse.motifmatchr <- function(fn, assembly, metadata){
 	md <- metadata
 	return(getParseResult(rs, md))
 }
+
+parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
+	require(xlsx)
+	fUrl <- "https://media.nature.com/original/nature-assets/ng/journal/v49/n11/extref/ng.3963-S4.xlsx"
+	cellTab <- data.frame(
+		cellType=c("mESC", "Tnaive", "Th17", "Treg", "GM12878", "K562", "MyLa", "HCASMC"),
+		assembly=c("mm9", "hg19", "hg19", "hg19", "hg19", "hg19", "hg19", "hg19"),
+		antibody=c("H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac"),
+		sheetName=c("mES H3K27ac Loops", "Naive H3K27ac Loops", "Th17 H3K27ac Loops", "Treg H3K27ac Loops", "GM12878 H3K27ac Loops", "K562 H3K27ac Loops", "My-La H3K27ac Loops", "HCASMC H3K27ac Loops")
+	)
+	compatAssemblies <- list(mm9=c("mm9", "mm10"), mm10=c("mm9", "mm10"), hg19=c("hg19", "hg38"), hg38=c("hg19", "hg38"))
+
+
+	fn <- tempfile(fileext=".xlsx")
+	download.file(fUrl, fn)
+
+	cellTab <- cellTab[cellTab$assembly %in% compatAssemblies[[assembly]],,drop=FALSE]
+	grl <- list()
+	for (i in nrow(cellTab)){
+		dfj <- read.xlsx(fn, cellTab[i, "sheetName"])
+		dfx <- dfj[,1:3]
+		colnames(dfx) <- c("chrom", "chromStart", "chromEnd")
+		dfx[,"loop"] <- paste0("loop", 1:nrow(dfj))
+		dfy <- dfj[,4:6]
+		colnames(dfy) <- c("chrom", "chromStart", "chromEnd")
+		dfy[,"loop"] <- paste0("loop", 1:nrow(dfj))
+		df <- rbind(dfx, dfy)
+		df[,"loop"] <- factor(df[,"loop"], levels=paste0("loop", 1:nrow(dfj)))
+
+		df[, "chrom"] <- adjChrom(df[, "chrom"])
+		assembly4gr <- as.character(cellTab[i, "assembly"])
+		gr <- df2granges(df, ids=df$loop, coord.format="B1RI", assembly=assembly4gr, doSort=TRUE)
+
+		# liftover if assembly does not match
+		if (assembly != assembly4gr){
+			gr <- grLiftOver(gr, assembly)
+			nOcc <- table(names(gr))
+			gr <- gr[nOcc[names(gr)] == 2] # discard regions where one matching partner could not be mapped by liftOver
+		}
+		grl <- c(grl, list(gr))
+	}
+	names(grl) <- cellTab[,"cellType"]
+	
+	md <- do.call("rbind", rep(list(metadata), length(cellTypes)))
+	md[,"name"] <- paste0(featureTypes)
+	md[,"description"] <- paste0(md[,"description"], " - ", cellTab[,"cellType"], " - ", cellTab[,"antibody"])
+
+	return(getParseResult(rs, md))	
+}
