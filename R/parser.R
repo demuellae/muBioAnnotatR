@@ -221,9 +221,10 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 	download.file(fUrl, fn)
 
 	cellTab <- cellTab[cellTab$assembly %in% compatAssemblies[[assembly]],,drop=FALSE]
-	if (nrow(cellTab) < 1) logger.error("Found no compatible assembly")
+	Ncells <- nrow(cellTab)
+	if (Ncells < 1) logger.error("Found no compatible assembly")
 	grl <- list()
-	for (i in 1:nrow(cellTab)){
+	for (i in 1:Ncells){
 		dfj <- read.xlsx(fn, cellTab[i, "sheetName"])
 		dfx <- dfj[,1:3]
 		colnames(dfx) <- c("chrom", "chromStart", "chromEnd")
@@ -248,8 +249,8 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 	}
 	names(grl) <- cellTab[,"cellType"]
 	
-	md <- do.call("rbind", rep(list(metadata), nrow(cellTab)))
-	md[,"name"] <- paste0(featureTypes)
+	md <- do.call("rbind", rep(list(metadata), Ncells))
+	md[,"name"] <- paste0(cellTab[,"cellType"])
 	md[,"description"] <- paste0(md[,"description"], " - ", cellTab[,"cellType"], " - ", cellTab[,"antibody"])
 
 	return(getParseResult(rs, md))	
