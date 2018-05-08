@@ -206,6 +206,7 @@ parse.motifmatchr <- function(fn, assembly, metadata){
 
 parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 	require(openxlsx)
+	require(muRtools) #grLiftOver
 	fUrl <- "https://media.nature.com/original/nature-assets/ng/journal/v49/n11/extref/ng.3963-S4.xlsx"
 	cellTab <- data.frame(
 		cellType=c("mESC", "Tnaive", "Th17", "Treg", "GM12878", "K562", "MyLa", "HCASMC"),
