@@ -220,8 +220,9 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 	download.file(fUrl, fn)
 
 	cellTab <- cellTab[cellTab$assembly %in% compatAssemblies[[assembly]],,drop=FALSE]
+	if (nrow(cellTab) < 1) logger.error("Found no compatible assembly")
 	grl <- list()
-	for (i in nrow(cellTab)){
+	for (i in 1:nrow(cellTab)){
 		dfj <- read.xlsx(fn, cellTab[i, "sheetName"])
 		dfx <- dfj[,1:3]
 		colnames(dfx) <- c("chrom", "chromStart", "chromEnd")
