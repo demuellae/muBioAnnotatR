@@ -211,7 +211,8 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 		cellType=c("mESC", "Tnaive", "Th17", "Treg", "GM12878", "K562", "MyLa", "HCASMC"),
 		assembly=c("mm9", "hg19", "hg19", "hg19", "hg19", "hg19", "hg19", "hg19"),
 		antibody=c("H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac", "H3K27ac"),
-		sheetName=c("mES H3K27ac Loops", "Naive H3K27ac Loops", "Th17 H3K27ac Loops", "Treg H3K27ac Loops", "GM12878 H3K27ac Loops", "K562 H3K27ac Loops", "My-La H3K27ac Loops", "HCASMC H3K27ac Loops")
+		sheetName=c("mES H3K27ac Loops", "Naive H3K27ac Loops", "Th17 H3K27ac Loops", "Treg H3K27ac Loops", "GM12878 H3K27ac Loops", "K562 H3K27ac Loops", "My-La H3K27ac Loops", "HCASMC H3K27ac Loops"),
+		stringsAsFactors=FALSE
 	)
 	compatAssemblies <- list(mm9=c("mm9", "mm10"), mm10=c("mm9", "mm10"), hg19=c("hg19", "hg38"), hg38=c("hg19", "hg38"))
 
