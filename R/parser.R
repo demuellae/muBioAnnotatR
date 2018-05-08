@@ -253,5 +253,5 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 	md[,"name"] <- paste0(cellTab[,"cellType"])
 	md[,"description"] <- paste0(md[,"description"], " - ", cellTab[,"cellType"], " - ", cellTab[,"antibody"])
 
-	return(getParseResult(rs, md))	
+	return(getParseResult(grl, md))	
 }
