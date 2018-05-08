@@ -248,7 +248,7 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 	}
 	names(grl) <- cellTab[,"cellType"]
 	
-	md <- do.call("rbind", rep(list(metadata), length(cellTypes)))
+	md <- do.call("rbind", rep(list(metadata), nrow(cellTab)))
 	md[,"name"] <- paste0(featureTypes)
 	md[,"description"] <- paste0(md[,"description"], " - ", cellTab[,"cellType"], " - ", cellTab[,"antibody"])
 
