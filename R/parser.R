@@ -256,3 +256,36 @@ parse.mumbach2017.hichip.supptab <- function(fn, assembly, metadata){
 
 	return(getParseResult(grl, md))	
 }
+
+parse.hnisz2013.se.supp <- function(fn, assembly, metadata){
+	require(muRtools) #grLiftOver
+	fUrl <- fn
+
+	fn <- tempfile(fileext=".zip")
+	download.file(fUrl, fn)
+	exDir <- tempfile(fileext="unzip")
+	unzip(fn, exdir=exDir)
+	bedFns <- list.files(exDir)
+	cellTypes <- gsub("\\.bed$", "", bedFns)
+
+	grl <- list()
+	for (i in seq_along(bedFns)){
+		fn <- bedFns[i]
+		rl <- readLines(file.path(exDir, fn))
+		iStart <- grep("^track.+color=255,0,0$", rl)
+		tt <- read.table(file.path(exDir, fn), skip=iStart, quote="", sep="\t", stringsAsFactors=FALSE)
+		gr <- df2granges(tt, ids=NULL, chrom.col=1L, start.col=2L, end.col=3L, strand.col=NULL, coord.format="B1RI", assembly="hg19")
+		colnames(elementMetadata(gr)) <- c("name", "count")
+		elementMetadata(gr)[,"cellType"] <- cellTypes[i]
+		if (assembly != "hg19"){
+			gr <- grLiftOver(gr, assembly)
+		}
+		grl <- c(grl, list(gr))
+	}
+	
+	md <- do.call("rbind", rep(list(metadata), length(cellTypes)))
+	md[,"name"] <- cellTypes
+	md[,"description"] <- paste0(md[,"description"], " - ", cellTypes)
+
+	return(getParseResult(grl, md))	
+}
