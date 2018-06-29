@@ -305,7 +305,6 @@ parse.gwas.catalog.snps <- function(fn, assembly, metadata){
 	# genomeObj <- getGenomeObject(assembly, adjChrNames=TRUE)
 	# fn <- "http://www.ebi.ac.uk/gwas/api/search/downloads/alternative"
 	fUrl <- fn
-
 	fn <- tempfile(fileext=".tsv")
 	download.file(fUrl, fn)
 
@@ -337,7 +336,7 @@ parse.gwas.catalog.snps <- function(fn, assembly, metadata){
 	gr <- snpLocs[idx]
 	elementMetadata(gr) <- cbind(tt, elementMetadata(gr))
 
-	return(getParseResult(list(gr), md))	
+	return(getParseResult(list(gr), metadata))	
 }
 
 parse.pics.snps.farh2015.supp <- function(fn, assembly, metadata){
