@@ -289,3 +289,50 @@ parse.hnisz2013.se.supp <- function(fn, assembly, metadata){
 
 	return(getParseResult(grl, md))	
 }
+
+parse.pics.snps.farh2015.supp <- function(fn, assembly, metadata){
+	require(readxl)
+	require(muRtools)
+
+	if (is.element(assembly, c("hg19", "GRCh37"))){
+		require(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+		snpDb <- SNPlocs.Hsapiens.dbSNP144.GRCh37
+	} else if (is.element(assembly, c("hg38", "GRCh38"))){
+		require(SNPlocs.Hsapiens.dbSNP144.GRCh38)
+		snpDb <- SNPlocs.Hsapiens.dbSNP144.GRCh38
+	} else {
+		logger.error(c("PICS parsing is not supported for assembly", assembly))
+	}
+	# genomeObj <- getGenomeObject(assembly, adjChrNames=TRUE)
+	# fn <- "https://media.nature.com/original/nature-assets/nature/journal/v518/n7539/extref/nature13835-s1.xls"
+	fUrl <- fn
+
+	fn <- tempfile(fileext=".xls")
+	download.file(fUrl, fn)
+
+	tt <- read_excel(fn)
+	tt <- tt[,!(colnames(tt) %in% c("chr", "pos"))]
+
+	snpLocs <- GRanges(snpsById(snpDb, tt$SNP, ifnotfound="warn"))
+	snpLocs <- setGenomeProps(snpLocs, assembly)
+
+	idx <-  match(tt$SNP, elementMetadata(snpLocs)[,"RefSNP_id"])
+	isUnmapped <- is.na(idx)
+	if (any(isUnmapped)){
+		logger.warning(c("The following SNP IDs could not be matched to coordinates:", paste(unique(tt$SNP[is.na(idx)]), collapse=",")))
+		tt <- tt[!isUnmapped,]
+		idx <- idx[!isUnmapped]
+	}
+
+	gr <- snpLocs[idx]
+	elementMetadata(gr) <- cbind(tt, elementMetadata(gr))
+
+	grl <- split(gr, elementMetadata(gr)[,"Disease"])
+	diseases <- names(grl)
+	
+	md <- do.call("rbind", rep(list(metadata), diseases))
+	md[,"name"] <- diseases
+	md[,"description"] <- paste0(md[,"description"], " - Disease:", diseases)
+
+	return(getParseResult(grl, md))	
+}
