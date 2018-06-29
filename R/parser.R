@@ -330,7 +330,7 @@ parse.pics.snps.farh2015.supp <- function(fn, assembly, metadata){
 	grl <- split(gr, elementMetadata(gr)[,"Disease"])
 	diseases <- names(grl)
 	
-	md <- do.call("rbind", rep(list(metadata), diseases))
+	md <- do.call("rbind", rep(list(metadata), length(diseases)))
 	md[,"name"] <- diseases
 	md[,"description"] <- paste0(md[,"description"], " - Disease:", diseases)
 
