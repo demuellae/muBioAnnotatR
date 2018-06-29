@@ -290,6 +290,56 @@ parse.hnisz2013.se.supp <- function(fn, assembly, metadata){
 	return(getParseResult(grl, md))	
 }
 
+parse.gwas.catalog.snps <- function(fn, assembly, metadata){
+	require(muRtools)
+
+	if (is.element(assembly, c("hg19", "GRCh37"))){
+		require(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+		snpDb <- SNPlocs.Hsapiens.dbSNP144.GRCh37
+	} else if (is.element(assembly, c("hg38", "GRCh38"))){
+		require(SNPlocs.Hsapiens.dbSNP144.GRCh38)
+		snpDb <- SNPlocs.Hsapiens.dbSNP144.GRCh38
+	} else {
+		logger.error(c("GWAS Catalog parsing is not supported for assembly", assembly))
+	}
+	# genomeObj <- getGenomeObject(assembly, adjChrNames=TRUE)
+	# fn <- "http://www.ebi.ac.uk/gwas/api/search/downloads/alternative"
+	fUrl <- fn
+
+	fn <- tempfile(fileext=".tsv")
+	download.file(fUrl, fn)
+
+	tt <- readTab(fn)
+	tt <- tt[,!(colnames(tt) %in% c("CHR_ID", "CHR_POS"))]
+	tt <- tt[grepl("^rs", tt$SNPS),]
+
+	#problem: some rows in tt have multiple SNPs --> expand tt to contain multiple rows for these cases
+	snpSplit <- strsplit(tt$SNPS, ";")
+	tt <- do.call("rbind", lapply(seq_along(snpSplit), FUN=function(i){
+		res <- do.call("rbind", rep(list(tt[i, , drop=FALSE]), length(snpSplit[[i]])))
+		res[,"SNPS"] <- normalize.str(snpSplit[[i]])
+		return(res)
+	}))
+	tt <- tt[grepl("^rs[0-9]+$", tt$SNPS),]
+
+
+	snpLocs <- GRanges(snpsById(snpDb, tt$SNPS, ifnotfound="warn"))
+	snpLocs <- setGenomeProps(snpLocs, assembly)
+
+	idx <-  match(tt$SNPS, elementMetadata(snpLocs)[,"RefSNP_id"])
+	isUnmapped <- is.na(idx)
+	if (any(isUnmapped)){
+		logger.warning(c("The following SNP IDs could not be matched to coordinates:", paste(unique(tt$SNPS[is.na(idx)]), collapse=",")))
+		tt <- tt[!isUnmapped,]
+		idx <- idx[!isUnmapped]
+	}
+
+	gr <- snpLocs[idx]
+	elementMetadata(gr) <- cbind(tt, elementMetadata(gr))
+
+	return(getParseResult(list(gr), md))	
+}
+
 parse.pics.snps.farh2015.supp <- function(fn, assembly, metadata){
 	require(readxl)
 	require(muRtools)
