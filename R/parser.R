@@ -199,8 +199,18 @@ parse.motifmatchr <- function(fn, assembly, metadata){
 	oo <- order(as.integer(seqnames(gr)), start(gr), end(gr), as.integer(strand(gr)))
 	gr <- gr[oo]
 
-	rs <- list(gr)
-	md <- metadata
+	motifNames <- sort(as.character(unique(elementMetadata(gr)[, "motifName"])))
+	if (length(motifNames) > 1){
+	# if (FALSE){
+		rs <- lapply(motifNames, FUN=function(mn){gr[elementMetadata(gr)[, "motifName"]==mn]})
+		names(rs) <- motifNames
+		md <- do.call("rbind", rep(list(metadata), length(motifNames)))
+		md[,"name"] <- paste0(motifNames)
+		md[,"description"] <- paste0(md[,"description"], " - ", motifNames)
+	} else {
+		rs <- list(gr)
+		md <- metadata
+	}
 	return(getParseResult(rs, md))
 }
 
