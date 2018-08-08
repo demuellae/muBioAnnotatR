@@ -614,6 +614,7 @@ loadRegionSetDB <- function(path, loadRegionSets=FALSE){
 	}
 	dsFn <- file.path(path, "rsdb.rds")
 	.object <- readRDS(dsFn)
+	dbDir(.object) <- path # Fix the path in case the object has been moved or copied to another location
 	if (loadRegionSets){
 		.object <- loadRegionSets(.object)
 	}
