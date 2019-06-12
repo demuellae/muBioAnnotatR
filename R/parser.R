@@ -395,3 +395,79 @@ parse.pics.snps.farh2015.supp <- function(fn, assembly, metadata){
 
 	return(getParseResult(grl, md))	
 }
+
+parse.gtex.eqtl <- function(fn, assembly, metadata){
+	require(muRtools)
+
+	if (assembly=="hg38"){
+		# dbSnpPkg <- "SNPlocs.Hsapiens.dbSNP149.GRCh38"
+		dbSnpPkg <- "SNPlocs.Hsapiens.dbSNP151.GRCh38"
+		require(dbSnpPkg, character.only=TRUE)
+		snpObj <- eval(parse(text=dbSnpPkg))
+	} else {
+		stop(c("GTEx SNP annotation not supported for assembly:", assembly))
+	}
+
+	# fn <- ""
+	if (fn == "v7"){
+		annotUrl <- "https://storage.googleapis.com/gtex_analysis_v7/reference/GTEx_Analysis_2016-01-15_v7_WholeGenomeSeq_635Ind_PASS_AB02_GQ20_HETX_MISS15_PLINKQC.lookup_table.txt.gz"
+		eqtlUrl <- "https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/GTEx_Analysis_v7_eQTL.tar.gz"
+	} else {
+		stop(c("Unknown GTEx version:", fn))
+	}
+
+	downFn <- tempfile(fileext=".txt.gz")
+	download.file(annotUrl, downFn)
+	varAnnot <- readTab(downFn)
+	rownames(varAnnot) <- varAnnot[,"variant_id"]
+
+	downFn <- tempfile(fileext=".tar.gz")
+	download.file(eqtlUrl, downFn)
+	destDir <- tempfile() #destDir <- "/scratch/users/muellerf/temp/blubb"
+	dir.create(destDir)
+	utils::untar(fn, exdir=destDir)
+	varDir <- file.path(destDir, gsub("\\.tar\\.gz", "", basename(eqtlUrl)))
+	linkFns <- list.files(varDir, pattern="signif_variant_gene_pairs.txt.gz")
+	tissues <- gsub("\\.v[0-9]\\.signif_variant_gene_pairs\\.txt\\.gz", "", linkFns)
+
+	qtlTab <- do.call("rbind", lapply(1:length(linkFns), FUN=function(i){
+		data.frame(
+			tissue=tissues[i],
+			readTab(file.path(varDir, linkFns[i]))
+		)
+	}))
+
+	qtlTab[,"gene_id_short"] <- gsub("\\.[0-9]+$", "", qtlTab[,"gene_id"])
+
+	qtlTab[,"rsId"] <- varAnnot[qtlTab[,"variant_id"], "rs_id_dbSNP147_GRCh37p13"]
+	qtlTab[qtlTab[,"rsId"] %in% ".","rsId"] <- NA
+
+	qtlTab <- qtlTab[!is.na(qtlTab[,"rsId"]),]
+
+	gr <- snpsById(snpObj, qtlTab[,"rsId"], ifnotfound="warning")
+
+	if (genome(gr)[1]!=assembly){
+		# adjust chromosome names
+		prependChr <- !grepl("chr", seqlevels(gr))
+		if (any(prependChr)){
+			seqlevels(gr)[prependChr] <- paste0("chr", seqlevels(gr)[prependChr])
+		}
+		seqlevels(gr)[seqlevels(gr)=="chrMT"] <- "chrM"
+		gr <- muRtools::setGenomeProps(gr, assembly, onlyMainChrs=TRUE)
+	}
+	snpIds2match <- elementMetadata(gr)[,"RefSNP_id"]
+
+	idx <- qtlTab[,"rsId"] %in% snpIds2match
+	elementMetadata(gr) <- cbind(elementMetadata(gr), qtlTab[idx,])
+	gr <- muRtools::sortGr(gr)
+
+	grl <- split(gr, elementMetadata(gr)[,"tissue"])
+	tissues <- names(grl)
+	# saveRDS(grl, file.path("/oak/stanford/groups/wjg/muellerf/data/GTEx", paste0("GTEx_eQTL_signif_variant_gene_pairs", "_v7", "_hg38", ".rds")))
+	
+	md <- do.call("rbind", rep(list(metadata), length(tissues)))
+	md[,"name"] <- tissues
+	md[,"description"] <- paste0(md[,"description"], " - tissue:", tissues)
+
+	return(getParseResult(grl, md))	
+}
