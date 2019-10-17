@@ -471,3 +471,104 @@ parse.gtex.eqtl <- function(fn, assembly, metadata){
 
 	return(getParseResult(grl, md))	
 }
+
+parse.vista.enhancers <- function(fn, assembly, metadata){
+	require(muRtools) #grLiftOver
+	fUrl <- "https://enhancer.lbl.gov/cgi-bin/imagedb3.pl?page_size=100;show=1;search.result=yes;page=1;form=search;search.form=no;action=search;search.sequence=1"
+
+	parse.one <- function(string,result){
+		m <- do.call(rbind,lapply(seq_along(string),function(i){
+		st <- attr(result,"capture.start")[i,]
+		substring(string[i],st,st+attr(result,"capture.length")[i,]-1)
+		}))
+		colnames(m) <- attr(result,"capture.names")
+		m
+	}
+
+	fn_unformatted <- tempfile(fileext=".fax")
+	fn <- tempfile(fileext=".fa")
+	download.file(fUrl, fn_unformatted)
+	
+	# replace <pre> tag
+	system2("sed", c("'1 s/^<pre>//'", fn_unformatted, ">", fn))
+
+	lls <- readLines(fn)
+	lls <- gsub("^>", "", lls[grepl("^>", lls)])
+	re <- paste0("^",
+		"(?P<organism>(Human|Mouse))\\|",
+		"(?P<chr>chr.+):(?P<chrStart>[0-9]+)-(?P<chrEnd>[0-9]+) \\| ",
+		"(?P<element>element.+) \\| ",
+		"(?P<status>(positive|negative)) \\|?",
+		"(?P<organ> .+)?",
+		"$"
+	)
+	isMatch <- grepl(re, lls, perl=TRUE)
+	if (sum(!isMatch) > 0){
+		logger.error(c("The following sample ids do not match the regular expression for annotation:", paste(lls[!isMatch], collapse=", ")))
+	}
+	rem <- regexpr(re, lls, perl=TRUE, ignore.case=FALSE)
+	parsed <- parse.one(lls, rem)
+	parsed[parsed==""] <- NA
+	sannot <- data.frame(
+		organism = factor(parsed[,"organism"]),
+		chr = parsed[,"chr"],
+		chrStart = as.integer(parsed[,"chrStart"]),
+		chrEnd = as.integer(parsed[,"chrEnd"]),
+		elementName = gsub(" ", "", parsed[,"element"]),
+		status = factor(parsed[,"status"]),
+		organ=gsub("^ ?\\| ?", "", parsed[,"organ"]),
+		stringsAsFactors=FALSE
+	)
+	organList <- lapply(sannot[,"organ"], FUN=function(s){
+		if (is.na(s)) return(NULL)
+		ss <- strsplit(s, " | ", fixed=TRUE)[[1]]
+		res <- paste(gsub("^(.+)\\[([0-9]+)\\/([0-9]+)\\]$", "\\2", ss), "of", gsub("^(.+)\\[([0-9]+)\\/([0-9]+)\\]$", "\\3", ss))
+		names(res) <- gsub("^(.+)\\[([0-9]+)\\/([0-9]+)\\]$", "\\1", ss)
+		return(res)
+	})
+	allOrgs <- sort(unique(do.call("c", lapply(organList, FUN=function(x){
+		if (is.null(x)) return(NULL)
+		return(names(x))
+	}))))
+	occTab <- t(sapply(organList, FUN=function(x){
+		if (is.null(x)) return(rep(FALSE, length(allOrgs)))
+		allOrgs %in% names(x)
+	}))
+	colnames(occTab) <- allOrgs
+
+	if (grepl("^hg", assembly)){
+		# human
+		idx <- which(sannot[,"organism"]=="Human")
+		refAss <- "hg19"
+	} else if (grepl("^mm", assembly)){
+		# mouse
+		idx <- which(sannot[,"organism"]=="Mouse")
+		refAss <- "mm9"
+	} else {
+		logger.error(c("Unsupported assembly:", assembly))
+	}
+	sannot <- sannot[idx, ]
+	gr <- df2granges(sannot, chrom.col="chr", start.col="chrStart", end.col="chrEnd", strand.col=NULL, coord.format="B1RI", assembly=refAss)
+	names(gr) <- NULL
+	if (assembly != refAss){
+		gr <- grLiftOver(gr, assembly)
+		# discard elements that could not be liftOvered
+		idx <- idx[sannot[,"elementName"] %in% elementMetadata(gr)[,"elementName"]]
+	}
+	rm(sannot)
+
+	occTab <- occTab[idx, ]
+	occTab <- occTab[, colSums(occTab) > 0]
+
+	featureTypes <- colnames(occTab)
+	orgGrl <- lapply(featureTypes, FUN=function(on){
+		gr[occTab[,on]]
+	})
+	names(orgGrl) <- featureTypes
+
+	md <- do.call("rbind", rep(list(metadata), length(featureTypes)))
+	md[,"name"] <- paste0(featureTypes)
+	md[,"description"] <- paste0(md[,"description"], " - ", featureTypes)
+	return(getParseResult(orgGrl, md))
+}
+
