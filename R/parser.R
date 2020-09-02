@@ -572,3 +572,23 @@ parse.vista.enhancers <- function(fn, assembly, metadata){
 	return(getParseResult(orgGrl, md))
 }
 
+
+parse.tfclusters.altius <- function(fn, assembly, metadata){
+	require(muRtools)
+	cr <- getTfMotifClusters_altius(assembly)
+	cnames <- names(cr$clusterOcc)
+	cannot <- cr$clusterAnnot
+	rs <- lapply(cnames, FUN=function(cn){
+		x <- cr$clusterOcc[[cn]]
+		# elementMetadata(x)[,"clusterName"] <- cannot[cn, "Name"]
+		elementMetadata(x)[,"clusterDBD"] <- cannot[cn, "DBD"]
+		return(x) 
+	})
+	names(rs) <- cnames
+
+	md <- do.call("rbind", rep(list(metadata), length(cnames)))
+	md[,"name"] <- paste0(cnames)
+	md[,"description"] <- paste0(md[,"description"], " - ", cannot[cnames, "Name"])
+	return(getParseResult(rs, md))
+}
+
