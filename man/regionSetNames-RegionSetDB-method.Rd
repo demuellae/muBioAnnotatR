@@ -6,8 +6,11 @@
 \alias{regionSetNames}
 \title{regionSetNames-methods}
 \usage{
-\S4method{regionSetNames}{RegionSetDB}(.object,
-  genomeNames = genomes(.object), collectionNames = collections(.object))
+\S4method{regionSetNames}{RegionSetDB}(
+  .object,
+  genomeNames = genomes(.object),
+  collectionNames = collections(.object)
+)
 }
 \arguments{
 \item{.object}{\code{\linkS4class{RegionSetDB}} object}

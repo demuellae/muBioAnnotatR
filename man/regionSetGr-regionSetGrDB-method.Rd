@@ -4,6 +4,7 @@
 \name{regionSetGr,RegionSetDB-method}
 \alias{regionSetGr,RegionSetDB-method}
 \alias{regionSetGr}
+\alias{regionSetGr,regionSetGrDB-method}
 \title{regionSetGr-methods}
 \usage{
 \S4method{regionSetGr}{RegionSetDB}(.object, name, col, gen)

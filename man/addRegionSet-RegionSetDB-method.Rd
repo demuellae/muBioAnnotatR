@@ -6,8 +6,18 @@
 \alias{addRegionSet}
 \title{addRegionSet-methods}
 \usage{
-\S4method{addRegionSet}{RegionSetDB}(.object, pid, name, description, assembly,
-  collection, collection_description, source, parser, file)
+\S4method{addRegionSet}{RegionSetDB}(
+  .object,
+  pid,
+  name,
+  description,
+  assembly,
+  collection,
+  collection_description,
+  source,
+  parser,
+  file
+)
 }
 \arguments{
 \item{.object}{\code{\linkS4class{RegionSetDB}} object}

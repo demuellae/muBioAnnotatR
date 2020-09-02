@@ -3,7 +3,7 @@ Title: muBioAnnotatR
 Description: Fabian's R annotation tools for biological entities
 Author: Fabian Mueller
 Maintainer: Fabian Mueller <muellerf@stanford.edu>
-Date: 2018-02-13
+Date: 2020-09-02
 Suggests:
 	LOLA,
     BSgenome.Hsapiens.UCSC.hg19,
@@ -21,6 +21,7 @@ Collate:
     'parser.R'
     'RegionSetDB-class.R'
     'export.R'
+    'tfMotifs.R'
 License: GPL-2
-Version: 0.1
-RoxygenNote: 6.0.1
+Version: 0.2
+RoxygenNote: 7.1.1
