@@ -16,7 +16,7 @@ getTfMotifClusters_altius <- function(
 		assembly="hg38",
 		datasetDir="/oak/stanford/groups/wjg/muellerf/resources/TFmotifs/AltiusMotifModelClusters/v1.0"
 	){
-	if (!is.element(assembly, c("hg38"))){
+	if (!is.element(assembly, c("hg38", "mm10"))){
 		logger.error(c("Invalid genome assembly:", assembly))
 	}
 	
