@@ -576,7 +576,7 @@ parse.vista.enhancers <- function(fn, assembly, metadata){
 parse.tfclusters.altius <- function(fn, assembly, metadata){
 	require(muRtools)
 	cr <- getTfMotifClusters_altius(assembly)
-	cnames <- names(cr$clusterOcc)
+	cnames <- names(cr$clusterOcc)[elementNROWS(cr$clusterOcc) > 0]
 	cannot <- cr$clusterAnnot
 	rs <- lapply(cnames, FUN=function(cn){
 		x <- cr$clusterOcc[[cn]]
